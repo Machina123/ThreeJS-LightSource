@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Three.JS Test - Machina</title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #threeMenu {
+            z-index: 3;
+            background-color: rgba(63, 81, 181, 0.5);
+            right: 0;
+            top: 0;
+            position: absolute;
+            color: white;
+            text-align: center;
+            font-size: 14pt;
+            line-height: 24px;
+            width: 400px;
+            font-family: "Arial";
+            height: 56px;
+            overflow: hidden;
+            -webkit-transition: all 1s ease-in-out;
+            transition: height 1s;
+        }
+
+            #threeMenu * {
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            #threeMenu:hover {
+                height: 650px;
+            }
+
+        #threeScene {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #threeFPS {
+            position: absolute;
+            width: auto;
+            height: auto;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+    </style>
+    <script src="three.js" type="text/javascript"></script>
+    <script src="stats.min.js" type="text/javascript"></script>
+    <script src="helvetiker_regular.typeface.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        var rot = false;
+
+        function onLoad() {
+
+            console.log(width, height);
+            var stats = new Stats();
+            stats.setMode(2);
+            
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 8192);
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(width, height);
+
+            renderer.setClearColor(0xffffff);
+
+            var objGeometry = new THREE.BoxGeometry(32, 32, 32, 8, 8, 8);
+            //var objTextures = [];
+            //for (var i = 0; i < 6; i++)
+                //objTextures.push(new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture("materials/texture.jpg") }));
+
+            var objFaceMaterial = new THREE.MeshPhongMaterial({
+                color: 0x4a4a4a,
+                specular: 0xffffff,
+                shininess: 50,
+                side: THREE.DoubleSide
+            });
+
+            var objMesh = new THREE.Mesh(objGeometry, objFaceMaterial);
+            scene.add(objMesh);
+
+            var vertices = [];
+            vertices = objGeometry.vertices;
+
+            var verticesObj = new THREE.Object3D();
+            var verticesMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+
+            for (var i = 0; i < vertices.length; i++) {
+                var vertGeo = new THREE.BoxGeometry(2, 2, 2, 1, 1, 1);
+                
+                var vertMesh = new THREE.Mesh(vertGeo, verticesMat);
+
+                vertMesh.position = vertices[i];
+
+
+            }
+
+            document.querySelector("#threeFPS").appendChild(stats.domElement);
+            document.querySelector("#threeScene").appendChild(renderer.domElement);
+            stats.begin();
+
+            camera.position.x = 0;
+            camera.position.y = 0;
+            camera.position.z = -64;
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+            var spotlightRed = new THREE.SpotLight(0xff0000, 2, 256);
+            spotlightRed.position.set(0, 0, -128);
+            spotlightRed.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(spotlightRed);
+
+            var spotlightGreen = new THREE.SpotLight(0x00ff00, 2, 256);
+            spotlightGreen.position.set(0, 0, -128);
+            spotlightGreen.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(spotlightGreen);
+
+            var spotlightBlue = new THREE.SpotLight(0x0000ff, 2, 256);
+            spotlightBlue.position.set(0, 0, -128);
+            spotlightBlue.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(spotlightBlue);
+
+            scene.updateMatrixWorld(true);
+
+            function animateScene() {
+                //camera.updateProjectionMatrix();
+                //camera.updateMatrixWorld(true);
+                if (rot) objMesh.rotateY(Math.PI / 180);
+                renderer.render(scene, camera);
+                stats.update();
+                requestAnimationFrame(animateScene);
+
+            }
+            console.log("Renderowanie pierwszej klatki...");
+            animateScene();
+            console.log("Pierwsza klatka wyrenderowana");
+
+            document.querySelector("#checkRotate").addEventListener("click", switchRotation, false);
+            document.querySelector("#lightRed").addEventListener("change", changeLight, false);
+            document.querySelector("#lightGreen").addEventListener("change", changeLight, false);
+            document.querySelector("#lightBlue").addEventListener("change", changeLight, false);
+
+            function switchRotation() { rot = !rot }
+
+            function changeLight() {
+                var red = document.querySelector("#lightRed").value;
+                var green = document.querySelector("#lightGreen").value;
+                var blue = document.querySelector("#lightBlue").value;
+
+                spotlightRed.position.set(0, 0, red * -1);
+                spotlightGreen.position.set(0, 0, green * -1);
+                spotlightBlue.position.set(0, 0, blue * -1);
+                
+                console.log(red, green, blue);
+
+                scene.updateMatrixWorld(true);
+            }
+        }
+
+        window.addEventListener("load", onLoad, false);
+    </script>
+</head>
+<body>
+    <div id="threeFPS"></div>
+    <div id="threeScene"></div>
+    <div id="threeMenu">
+        <p><strong>Menu</strong></p><br />
+        <label>
+            <input type="radio" name="geometry" value="Box" checked /> Sześcian
+        </label><br />
+        <label>
+            <input type="radio" name="geometry" value="Plane" /> Powierzchnia
+        </label><br />
+        <button id="checkRotate">Przełącz obrót figury</button> <br />
+        <label>Czerwony:
+            <input type="range" id="lightRed" min="32" max="200" step="1" value="128" />
+        </label> <br />
+        <label>
+            Zielony:
+            <input type="range" id="lightGreen" min="32" max="200" step="1" value="128" />
+        </label> <br />
+        <label>
+            Niebieski:
+            <input type="range" id="lightBlue" min="32" max="200" step="1" value="128" />
+        </label> <br />
+    </div>
+</body>
+</html>
